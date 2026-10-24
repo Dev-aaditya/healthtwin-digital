@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthTwin | Preventive Health Intelligence</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f4f7f6;
+            --panel: #ffffff;
+            --ink: #19332f;
+            --muted: #70817d;
+            --accent: #087f70;
+            --border: #e0e9e5;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Inter, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+        }
+
+        header {
+            padding: 22px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 21px;
+        }
+
+        .brand span {
+            color: var(--accent);
+        }
+
+        .status {
+            color: var(--accent);
+            font-size: 13px;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: auto;
+            padding: 28px 20px;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 12px;
+            letter-spacing: 1.6px;
+            font-weight: 800;
+        }
+
+        h1 {
+            margin: 8px 0;
+            font-size: clamp(27px, 4vw, 38px);
+        }
+
+        .subtitle {
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .controls,
+        .panel,
+        .metric {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: end;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 7px;
+        }
+
+        input,
+        select,
+        button {
+            font: inherit;
+            padding: 11px 13px;
+            border-radius: 9px;
+        }
+
+        input,
+        select {
+            border: 1px solid var(--border);
+            width: 150px;
+        }
+
+        button {
+            border: none;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        button:hover {
+            opacity: .9;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .metric {
+            padding: 20px;
+        }
+
+        .metric .label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .metric .value {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 12px 0 5px;
+        }
+
+        .metric small {
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px;
+        }
+
+        .panel {
+            padding: 22px;
+            min-width: 0;
+        }
+
+        .panel h2 {
+            font-size: 17px;
+            margin: 0 0 8px;
+        }
+
+        .panel p {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .chart-wrap {
+            height: 300px;
+            position: relative;
+        }
+
+        .notice {
+            margin-top: 18px;
+            padding: 15px 18px;
+            border-radius: 12px;
+            background: #fff8e7;
+            color: #74581b;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        #message {
+            margin: 12px 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media(max-width: 760px) {
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                align-items: stretch;
+            }
+
+            input,
+            select {
+                width: 100%;
+            }
+
+            .controls>div {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">Health<span>Twin</span></div>
+        <div class="status">● Digital twin demo</div>
+    </header>
+
+    <main>
+        <div class="eyebrow">PREVENTIVE HEALTH INTELLIGENCE</div>
+        <h1>Explore a possible health trajectory.</h1>
+        <p class="subtitle">
+            Compare a stable baseline with a hypothetical intervention scenario.
+            Explore how the simulated indicators evolve over time.
+        </p>
+
+        <section class="controls">
+            <div>
+                <label for="profileId">Profile ID</label>
+                <input id="profileId" type="number" min="1" value="1">
+            </div>
+            <div>
+                <label for="weeks">Simulation horizon</label>
+                <select id="weeks">
+                    <option value="4">4 weeks</option>
+                    <option value="8">8 weeks</option>
+                    <option value="12" selected>12 weeks</option>
+                    <option value="24">24 weeks</option>
+                    <option value="52">52 weeks</option>
+                </select>
+            </div>
+            <button id="runButton" onclick="runSimulation()">
+                Run simulation →
+            </button>
+            <button id="demoButton" type="button" onclick="loadDemoProfile()">
+                Load demo participant
+            </button>
+        </section>
+
+        <div id="message">Ready to load a profile.</div>
+
+        <section class="metrics">
+            <article class="metric">
+                <div class="label">Starting weight</div>
+                <div class="value" id="startWeight">—</div>
+                <small>Latest available measurement</small>
+            </article>
+            <article class="metric">
+                <div class="label">Scenario weight change</div>
+                <div class="value" id="weightChange">—</div>
+                <small>Illustrative change over selected horizon</small>
+            </article>
+            <article class="metric">
+                <div class="label">Measurements recorded</div>
+                <div class="value" id="recordCount">—</div>
+                <small>Longitudinal data points</small>
+            </article>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <h2>Weight trajectory</h2>
+                <p>Baseline versus hypothetical intervention.</p>
+                <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+            </article>
+            <article class="panel">
+                <h2>Scenario summary</h2>
+                <p id="profileSummary">Select a profile and run the simulation.</p>
+                <div class="notice">
+                    <strong>Interpret with care</strong><br>
+                    The intervention rates are illustrative placeholders,
+                    not clinically validated predictions or medical advice.
+                </div>
+            </article>
+            <article class="panel">
+                <h2>Resting heart rate</h2>
+                <p>Simulated beats per minute, when baseline data is available.</p>
+                <div class="chart-wrap"><canvas id="hrChart"></canvas></div>
+            </article>
+            <article class="panel">
+                <h2>Glucose trajectory</h2>
+                <p>Simulated mg/dL, when baseline data is available.</p>
+                <div class="chart-wrap"><canvas id="glucoseChart"></canvas></div>
+            </article>
+        </section>
+
+        <section class="panel" style="margin-top: 20px;">
+            <div class="eyebrow">MACHINE LEARNING</div>
+            <h2 style="margin-top: 10px;">Explore the ML classifier</h2>
+            <p>
+                Enter sample features to see how the trained logistic
+                regression model classifies an input.
+            </p>
+
+            <form id="mlForm">
+                <div style="
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+    ">
+                    <div>
+                        <label for="mlPregnancies">Pregnancies</label>
+                        <input id="mlPregnancies" type="number" min="0" max="30" value="2" required>
+                    </div>
+
+                    <div>
+                        <label for="mlGlucose">Glucose</label>
+                        <input id="mlGlucose" type="number" min="0.01" max="500" step="any" value="120" required>
+                    </div>
+
+                    <div>
+                        <label for="mlBP">Blood pressure</label>
+                        <input id="mlBP" type="number" min="0.01" max="300" step="any" value="70" required>
+                    </div>
+
+                    <div>
+                        <label for="mlSkin">Skin thickness</label>
+                        <input id="mlSkin" type="number" min="0" max="150" step="any" value="25" required>
+                    </div>
+
+                    <div>
+                        <label for="mlInsulin">Insulin</label>
+                        <input id="mlInsulin" type="number" min="0" max="3000" step="any" value="80" required>
+                    </div>
+
+                    <div>
+                        <label for="mlBMI">BMI</label>
+                        <input id="mlBMI" type="number" min="0.01" max="150" step="any" value="27.5" required>
+                    </div>
+
+                    <div>
+                        <label for="mlDPF">Diabetes pedigree function</label>
+                        <input id="mlDPF" type="number" min="0" max="10" step="any" value="0.4" required>
+                    </div>
+
+                    <div>
+                        <label for="mlAge">Age</label>
+                        <input id="mlAge" type="number" min="21" max="120" value="35" required>
+                    </div>
+                </div>
+
+                <button type="submit" style="margin-top: 20px;">
+                    Run ML prediction →
+                </button>
+            </form>
+
+            <div id="mlMessage" role="status" aria-live="polite" style="margin-top: 16px;">
+                Ready to evaluate a sample.
+            </div>
+
+            <div id="mlResult" hidden style="margin-top: 16px; padding: 18px;
+              border: 1px solid var(--border);
+              border-radius: 12px;">
+                <div class="label">Classifier output score</div>
+                <div id="mlScore" class="value">—</div>
+
+                <p id="mlClass"></p>
+                <p id="mlExplanation"></p>
+            </div>
+
+            <div class="notice">
+                Educational demonstration only. This model was trained
+                on a limited historical dataset of Pima Indian women.
+                Its score is not a validated personal risk estimate,
+                and the result cannot diagnose or rule out diabetes.
+                Do not use this demonstration for medical decisions.
+            </div>
+        </section>
+
+        <section class="panel" style="margin-top: 20px;">
+            <div class="eyebrow">MODEL VALIDATION</div>
+            <h2 style="margin-top: 10px;">How was the model evaluated?</h2>
+            <p>
+                Performance on held-out test data. These are preliminary
+                dataset-specific results, not clinical validation.
+            </p>
+
+            <div class="metrics">
+                <article class="metric">
+                    <div class="label">Accuracy</div>
+                    <div class="value" id="metricAccuracy">—</div>
+                </article>
+                <article class="metric">
+                    <div class="label">Balanced accuracy</div>
+                    <div class="value" id="metricBalanced">—</div>
+                </article>
+                <article class="metric">
+                    <div class="label">ROC-AUC</div>
+                    <div class="value" id="metricAuc">—</div>
+                </article>
+            </div>
+
+            <h2>Confusion matrix</h2>
+            <p>Rows are actual classes; columns are predicted classes.</p>
+
+            <div id="confusionMatrix">Loading evaluation results...</div>
+            <p id="metricsDisclaimer"></p>
+        </section>
+
+    </main>
+
+    <script>
+        let charts = {};
+
+        function drawChart(id, label, labels, baseline, intervention, unit) {
+            if (charts[id]) charts[id].destroy();
+
+            charts[id] = new Chart(document.getElementById(id), {
+                type: "line",
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: "Baseline",
+                            data: baseline,
+                            borderColor: "#85938f",
+                            backgroundColor: "#85938f",
+                            borderDash: [6, 5],
+                            pointRadius: 0,
+                            tension: 0.25,
+                            spanGaps: false
+                        },
+                        {
+                            label: "Hypothetical intervention",
+                            data: intervention,
+                            borderColor: "#087f70",
+                            backgroundColor: "#087f70",
+                            pointRadius: 2,
+                            tension: 0.25,
+                            spanGaps: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: "index" },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: c => `${c.dataset.label}: ${c.parsed.y == null ? "Unavailable" :
+                                    c.parsed.y + " " + unit
+                                    }`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: "Week" } },
+                        y: { title: { display: true, text: unit } }
+                    }
+                }
+            });
+        }
+
+        async function runSimulation() {
+            const id = document.getElementById("profileId").value;
+            const weeks = document.getElementById("weeks").value;
+            const message = document.getElementById("message");
+            const button = document.getElementById("runButton");
+
+            if (!id || Number(id) < 1 || !Number.isInteger(Number(id))) {
+                message.textContent = "Enter a valid positive profile ID.";
+                return;
+            }
+
+            button.disabled = true;
+            message.textContent = "Loading profile and simulation...";
+
+            try {
+                const [profileResponse, historyResponse, simResponse] =
+                    await Promise.all([
+                        fetch(`/profiles/${id}`),
+                        fetch(`/profiles/${id}/measurements`),
+                        fetch(`/profiles/${id}/simulate?weeks=${weeks}`, {
+                            method: "POST"
+                        })
+                    ]);
+
+                if (!profileResponse.ok) {
+                    throw new Error("Profile not found. Create a profile first.");
+                }
+                if (!historyResponse.ok || !simResponse.ok) {
+                    throw new Error("Could not load history or simulation.");
+                }
+
+                const profile = await profileResponse.json();
+                const history = await historyResponse.json();
+                const sim = await simResponse.json();
+
+                const base = sim.baseline;
+                const intervention = sim.intervention;
+                const labels = base.map(p => `Week ${p.week}`);
+
+                const first = base[0];
+                const last = intervention[intervention.length - 1];
+
+                document.getElementById("startWeight").textContent =
+                    `${first.weight_kg.toFixed(1)} kg`;
+
+                const change = last.weight_kg - first.weight_kg;
+                document.getElementById("weightChange").textContent =
+                    `${change > 0 ? "+" : ""}${change.toFixed(1)} kg`;
+
+                document.getElementById("recordCount").textContent =
+                    history.count;
+
+                document.getElementById("profileSummary").textContent =
+                    `${profile.name}, age ${profile.age}. Over ${weeks} weeks, ` +
+                    `the illustrative scenario changes weight by ${change.toFixed(1)} kg. ` +
+                    `This is a model-generated scenario, not a forecast of this person's health.`;
+
+                drawChart(
+                    "weightChart", "Weight", labels,
+                    base.map(p => p.weight_kg),
+                    intervention.map(p => p.weight_kg), "kg"
+                );
+
+                drawChart(
+                    "hrChart", "Resting heart rate", labels,
+                    base.map(p => p.resting_hr_bpm),
+                    intervention.map(p => p.resting_hr_bpm), "BPM"
+                );
+
+                drawChart(
+                    "glucoseChart", "Glucose", labels,
+                    base.map(p => p.glucose_mg_dl),
+                    intervention.map(p => p.glucose_mg_dl), "mg/dL"
+                );
+
+                message.textContent =
+                    `Simulation loaded for profile ${id}. Demo scenario only.`;
+            } catch (error) {
+                message.textContent = error.message;
+            } finally {
+                button.disabled = false;
+            }
+
+
+        }
+        async function loadDemoProfile() {
+            const button = document.getElementById("demoButton");
+            const message = document.getElementById("message");
+            const profileInput = document.getElementById("profileId");
+
+            button.disabled = true;
+            message.textContent = "Creating demo participant...";
+
+            try {
+                const profileResponse = await fetch("/profiles", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        name: "Demo Participant",
+                        age: 35,
+                        height_cm: 170,
+                        baseline_weight_kg: 75
+                    })
+                });
+
+                const profile = await profileResponse.json();
+
+                if (!profileResponse.ok) {
+                    throw new Error(
+                        profile.detail || "Profile creation failed."
+                    );
+                }
+
+                const measurementResponse = await fetch(
+                    `/profiles/${profile.id} / measurements`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            weight_kg: 75,
+                            resting_hr_bpm: 72,
+                            glucose_mg_dl: 95
+                        })
+                    }
+                );
+
+                const measurement = await measurementResponse.json();
+
+                if (!measurementResponse.ok) {
+                    throw new Error(
+                        measurement.detail || "Measurement creation failed."
+                    );
+                }
+
+                profileInput.value = profile.id;
+
+                message.textContent =
+                    `Demo profile #${profile.id} created.`;
+
+                await runSimulation();
+
+            } catch (error) {
+                message.textContent = `Demo setup failed: ${error.message}`;
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+
+        runSimulation();
+
+
+        document.getElementById("mlForm").addEventListener(
+            "submit",
+            async function (event) {
+                event.preventDefault();
+
+                const message = document.getElementById("mlMessage");
+                const result = document.getElementById("mlResult");
+
+                message.textContent = "Running the trained model...";
+                result.hidden = true;
+
+                const payload = {
+                    pregnancies: Number(
+                        document.getElementById("mlPregnancies").value
+                    ),
+                    glucose: Number(
+                        document.getElementById("mlGlucose").value
+                    ),
+                    blood_pressure: Number(
+                        document.getElementById("mlBP").value
+                    ),
+                    skin_thickness: Number(
+                        document.getElementById("mlSkin").value
+                    ),
+                    insulin: Number(
+                        document.getElementById("mlInsulin").value
+                    ),
+                    bmi: Number(
+                        document.getElementById("mlBMI").value
+                    ),
+                    diabetes_pedigree_function: Number(
+                        document.getElementById("mlDPF").value
+                    ),
+                    age: Number(
+                        document.getElementById("mlAge").value
+                    )
+                };
+
+                if (
+                    Object.values(payload).some(value => !Number.isFinite(value))
+                ) {
+                    message.textContent = "Please enter valid numeric values.";
+                    return;
+                }
+
+                try {
+                    const response = await fetch("/ml/predict", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(
+                            data.detail
+                                ? JSON.stringify(data.detail)
+                                : "Prediction request failed."
+                        );
+                    }
+
+                    document.getElementById("mlScore").textContent =
+                        (data.model_score * 100).toFixed(2) + "%";
+
+                    document.getElementById("mlClass").textContent =
+                        "Predicted dataset class: " + data.model_class;
+
+                    document.getElementById("mlExplanation").textContent =
+                        data.interpretation;
+
+                    result.hidden = false;
+                    message.textContent = "Model inference completed successfully.";
+                } catch (error) {
+                    message.textContent = "Error: " + error.message;
+                }
+            }
+        );
+
+
+        async function loadModelMetrics() {
+            const matrixElement = document.getElementById("confusionMatrix");
+
+            try {
+                const response = await fetch("/ml/metrics");
+
+                if (!response.ok) {
+                    throw new Error("Could not load model evaluation metrics.");
+                }
+
+                const result = await response.json();
+                const m = result.metrics;
+
+                document.getElementById("metricAccuracy").textContent =
+                    (m.accuracy * 100).toFixed(1) + "%";
+
+                document.getElementById("metricBalanced").textContent =
+                    (m.balanced_accuracy * 100).toFixed(1) + "%";
+
+                document.getElementById("metricAuc").textContent =
+                    m.roc_auc.toFixed(3);
+
+                const matrix = m.confusion_matrix;
+
+                if (
+                    !Array.isArray(matrix) ||
+                    matrix.length !== 2 ||
+                    matrix.some(row => !Array.isArray(row) || row.length !== 2)
+                ) {
+                    throw new Error("Unexpected confusion matrix format.");
+                }
+
+                matrixElement.replaceChildren();
+
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                table.style.borderCollapse = "collapse";
+
+                const rows = [
+                    ["Actual \\ Predicted", "Class 0", "Class 1"],
+                    ["Class 0", matrix[0][0], matrix[0][1]],
+                    ["Class 1", matrix[1][0], matrix[1][1]]
+                ];
+
+                rows.forEach((row, index) => {
+                    const tr = document.createElement("tr");
+
+                    row.forEach(value => {
+                        const cell = document.createElement(index === 0 ? "th" : "td");
+                        cell.textContent = String(value);
+                        cell.style.padding = "12px";
+                        cell.style.textAlign = "left";
+                        cell.style.borderBottom = "1px solid var(--border)";
+                        tr.appendChild(cell);
+                    });
+
+                    table.appendChild(tr);
+                });
+
+                matrixElement.appendChild(table);
+
+                document.getElementById("metricsDisclaimer").textContent =
+                    result.disclaimer;
+            } catch (error) {
+                matrixElement.textContent = error.message;
+            }
+        }
+
+        loadModelMetrics();
+
+
+    </script>
+</body>
+
+</html>
