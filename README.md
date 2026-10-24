@@ -81,17 +81,9 @@ Requirements: Python 3.10+.
    ```
 7. Open `http://127.0.0.1:8000/` and `http://127.0.0.1:8000/docs`.
 
-## Demo video (mandatory)
-**Unlisted YouTube video, 15–20 minutes:** https://youtu.be/oQ3lTJRPaYg  
-Add the final URL here and to the submission form. Verify reviewers can access it.
+## Demo video 
+**Unlisted YouTube video:** https://youtu.be/oQ3lTJRPaYg  
 
-## Open-source license
-The project code is intended to use the MIT License; see `LICENSE`. Replace its copyright placeholder. The code license does not automatically cover third-party datasets or other assets; verify those terms separately.
-
-## Included submission materials
-- `architecture.pdf` — architecture diagram.
-- `presentation.pptx` — project presentation.
-- `LICENSE` — MIT license template.
 - `demo_script.md` — suggested narration and demo sequence.
 - `submission_checklist.md` — final checklist.
 
